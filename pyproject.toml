@@ -1,0 +1,15 @@
+[project]
+name = "fittrack-api"
+version = "0.1.0"
+description = "FitTrack API — a FastAPI backend"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "email-validator",
+    "fastapi",
+    "pwdlib[argon2]",
+    "pyjwt",
+    "python-multipart",
+    "sqlalchemy>=2.0.51",
+    "uvicorn[standard]",
+]
