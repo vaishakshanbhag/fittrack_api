@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from db import get_db
@@ -36,10 +36,7 @@ def get_workout(
     db: Session = Depends(get_db),
 ):
     """Get one of the authenticated user's workouts by its id."""
-    try:
-        return workouts.get(db, workout_id, current_user.id)
-    except workouts.WorkoutNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout {workout_id} not found")
+    return workouts.get(db, workout_id, current_user.id)
 
 
 @router.put("/workouts/{workout_id}", response_model=WorkoutOut)
@@ -50,10 +47,7 @@ def update_workout(
     db: Session = Depends(get_db),
 ):
     """Update one of the authenticated user's workouts by its id."""
-    try:
-        return workouts.update(db, workout_id, payload, current_user.id)
-    except workouts.WorkoutNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout {workout_id} not found")
+    return workouts.update(db, workout_id, payload, current_user.id)
 
 
 @router.delete("/workouts/{workout_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -63,7 +57,4 @@ def delete_workout(
     db: Session = Depends(get_db),
 ):
     """Delete one of the authenticated user's workouts by its id."""
-    try:
-        workouts.delete(db, workout_id, current_user.id)
-    except workouts.WorkoutNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Workout {workout_id} not found")
+    workouts.delete(db, workout_id, current_user.id)
