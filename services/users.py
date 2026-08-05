@@ -9,6 +9,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from errors import NotFoundError
 from models.db_models import User, Workout
 from models.user import UserIn, UserOut
 from services import auth
@@ -18,7 +19,7 @@ from services import auth
 UNUSABLE_PASSWORD_HASH = "!"
 
 
-class UserNotFoundError(Exception):
+class UserNotFoundError(NotFoundError):
     """Raised when a user with the requested id does not exist."""
 
     def __init__(self, user_id: int):

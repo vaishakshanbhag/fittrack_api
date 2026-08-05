@@ -8,11 +8,12 @@ instances so the API contract is unchanged.
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from errors import NotFoundError
 from models.db_models import Workout
 from models.workout import WorkoutIn, WorkoutOut, WorkoutUpdate
 
 
-class WorkoutNotFoundError(Exception):
+class WorkoutNotFoundError(NotFoundError):
     """Raised when a workout with the requested id does not exist."""
 
     def __init__(self, workout_id: int):

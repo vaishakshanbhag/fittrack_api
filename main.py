@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
 
 from db import Base, engine
+from errors import NotFoundError
 from models import db_models  # noqa: F401 - register ORM models on Base.metadata
 from routes import auth, health, workouts
 
@@ -15,6 +17,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="FitTrack API", lifespan=lifespan)
+
+
+@app.exception_handler(NotFoundError)
+async def not_found_handler(request: Request, exc: NotFoundError):
+    """Map any domain NotFoundError to a 404 response."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={"detail": exc.detail},
+    )
+
 
 app.include_router(health.router)
 app.include_router(auth.router)

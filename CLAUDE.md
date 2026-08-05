@@ -33,6 +33,15 @@ fittrack_api/
 - Business logic goes in a matching module under `services/` (e.g. the
   `routes/workouts.py` endpoints call functions in `services/workouts.py`).
 
+### Error mapping
+- Services raise **domain exceptions**, not HTTP errors. Anything that means
+  "resource does not exist" subclasses `NotFoundError` (in `errors.py`) and
+  carries a client-safe `detail` message — e.g. `WorkoutNotFoundError`,
+  `UserNotFoundError`.
+- A single exception handler in `main.py` maps `NotFoundError` (and its
+  subclasses) to a `404`. **Handlers must not repeat `try/except` → 404
+  boilerplate** — just call the service and let the exception propagate.
+
 ### Docstrings
 - **Every** endpoint handler has a docstring describing what it does. FastAPI
   surfaces this as the endpoint description in the interactive docs.
