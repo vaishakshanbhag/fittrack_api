@@ -7,7 +7,7 @@ are the API contract, these define how rows are stored.
 from datetime import date as date_type
 from datetime import datetime, timezone
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db import Base
@@ -33,6 +33,8 @@ class User(Base):
     # ``services.users.delete_user`` — deliberately NOT a blanket
     # ``cascade="all, delete-orphan"`` here.
     workouts: Mapped[list["Workout"]] = relationship(back_populates="user")
+    measurements: Mapped[list["Measurement"]] = relationship(back_populates="user")
+    journal_entries: Mapped[list["JournalEntry"]] = relationship(back_populates="user")
 
 
 class Workout(Base):
@@ -52,3 +54,43 @@ class Workout(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="workouts")
+
+
+class Measurement(Base):
+    """A single body-measurement record, owned by exactly one user."""
+
+    __tablename__ = "measurements"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    height_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    weight_kg: Mapped[float] = mapped_column(Float, nullable=False)
+    chest_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    waist_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    hip_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    thigh_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    calf_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    arm_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    forearm_cm: Mapped[float] = mapped_column(Float, nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False, index=True
+    )
+
+    user: Mapped["User"] = relationship(back_populates="measurements")
+
+
+class JournalEntry(Base):
+    """A single journal entry record, owned by exactly one user."""
+
+    __tablename__ = "journal_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    mood: Mapped[str | None] = mapped_column(String, nullable=True)
+    entry_date: Mapped[date_type] = mapped_column(Date, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False, index=True
+    )
+
+    user: Mapped["User"] = relationship(back_populates="journal_entries")
