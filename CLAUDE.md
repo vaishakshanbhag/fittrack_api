@@ -77,6 +77,12 @@ fittrack_api/
     freshly created **anonymized placeholder** user (unusable password hash `"!"`,
     a unique generated email like `deleted-user-{id}@fittrack.local`), then
     delete the original user.
+  - The placeholder is built as a raw ORM `User(...)`, never via `UserIn`: its
+    `@fittrack.local` address is a reserved special-use domain that Pydantic's
+    `EmailStr` rejects, so it only works by bypassing that validation. This is
+    fine as long as nothing constructs a `UserIn`/`UserOut` for a placeholder —
+    if a future route ever serializes one through `UserOut`, `EmailStr` will
+    reject it there too.
 - Because there is no ORM cascade, a service that deletes an owner must either
   delete its children explicitly or reassign them (moving `child.user` keeps
   both sides of the relationship in sync so SQLAlchemy won't try to NULL a

@@ -110,6 +110,14 @@ def delete_user(db: Session, user_id: int, delete_data: bool = False) -> None:
         return
 
     # Retain data: reassign every workout to a new anonymized placeholder user.
+    # Built as a raw ORM User, not via UserIn — deliberately: the
+    # "@fittrack.local" address (see _unique_placeholder_email) is a reserved
+    # special-use domain that Pydantic's EmailStr rejects, so this would fail
+    # validation if ever routed through UserIn. It's safe today because no
+    # code path constructs a UserIn for placeholders. If a placeholder user
+    # is ever serialized via UserOut.model_validate(...) (e.g. a future admin
+    # listing endpoint), EmailStr will reject it at that point too — swap the
+    # domain to something EmailStr accepts before adding such a route.
     placeholder = User(
         email=_unique_placeholder_email(db, user_id),
         hashed_password=UNUSABLE_PASSWORD_HASH,
