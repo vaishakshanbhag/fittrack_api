@@ -6,8 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class WorkoutBase(BaseModel):
     """Shared workout fields used by both input and output schemas."""
 
-    name: str = Field(..., min_length=1, description="Name of the workout.")
-    type: str = Field(..., min_length=1, description="Type of workout, e.g. 'cardio' or 'strength'.")
+    exercise_id: int = Field(..., gt=0, description="Id of the catalog exercise performed.")
     duration_minutes: int = Field(..., gt=0, description="Duration of the workout in minutes.")
     calories_burned: int = Field(..., ge=0, description="Calories burned during the workout.")
     date: date_type = Field(..., description="Date the workout took place.")

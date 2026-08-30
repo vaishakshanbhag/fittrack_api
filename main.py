@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from db import Base, engine
 from errors import NotFoundError
 from models import db_models  # noqa: F401 - register ORM models on Base.metadata
-from routes import auth, health, journal_entries, measurements, workouts
+from routes import auth, exercises, health, journal_entries, measurements, workouts
 
 
 @asynccontextmanager
@@ -30,6 +30,7 @@ async def not_found_handler(request: Request, exc: NotFoundError):
 
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(exercises.router)
 app.include_router(journal_entries.router)
 app.include_router(measurements.router)
 app.include_router(workouts.router)
