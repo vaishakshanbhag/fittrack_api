@@ -7,7 +7,7 @@ are the API contract, these define how rows are stored.
 from datetime import date as date_type
 from datetime import datetime, timezone
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db import Base
@@ -43,8 +43,6 @@ class Workout(Base):
     __tablename__ = "workouts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    type: Mapped[str] = mapped_column(String, nullable=False)
     duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
     calories_burned: Mapped[int] = mapped_column(Integer, nullable=False)
     date: Mapped[date_type] = mapped_column(Date, nullable=False)
@@ -52,8 +50,37 @@ class Workout(Base):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False, index=True
     )
+    exercise_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("exercises.id"), nullable=False, index=True
+    )
 
     user: Mapped["User"] = relationship(back_populates="workouts")
+    exercise: Mapped["Exercise"] = relationship(back_populates="workouts")
+
+
+class Exercise(Base):
+    """A catalog exercise, shared across all users (not owned by anyone).
+
+    Populated once via ``scripts/import_exercises.py`` from the free-exercise-db
+    public domain dataset; never created or modified through the API.
+    """
+
+    __tablename__ = "exercises"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    external_id: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    category: Mapped[str] = mapped_column(String, nullable=False)
+    level: Mapped[str] = mapped_column(String, nullable=False)
+    mechanic: Mapped[str | None] = mapped_column(String, nullable=True)
+    force: Mapped[str | None] = mapped_column(String, nullable=True)
+    equipment: Mapped[str | None] = mapped_column(String, nullable=True)
+    primary_muscles: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    secondary_muscles: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    instructions: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    images: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+
+    workouts: Mapped[list["Workout"]] = relationship(back_populates="exercise")
 
 
 class Measurement(Base):

@@ -14,6 +14,10 @@ dependencies = [
     "uvicorn[standard]",
 ]
 
+[project.optional-dependencies]
+# Only needed for `scripts/migrate_workouts_exercise_fk.py --llm-second-pass`.
+llm = ["anthropic"]
+
 [dependency-groups]
 dev = [
     "httpx",

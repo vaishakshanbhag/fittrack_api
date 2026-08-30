@@ -5,16 +5,21 @@ from datetime import date
 import pytest
 from sqlalchemy import select
 
-from models.db_models import User, Workout
+from models.db_models import Exercise, User, Workout
 from models.user import UserIn
 from services import users
 from services.users import UNUSABLE_PASSWORD_HASH
 
 
-def _add_workout(db_session, user_id, name="Run"):
+def _add_workout(db_session, user_id):
+    exercise = Exercise(
+        external_id="test-exercise-run", name="Run", category="cardio", level="beginner"
+    )
+    db_session.add(exercise)
+    db_session.commit()
+
     workout = Workout(
-        name=name,
-        type="cardio",
+        exercise_id=exercise.id,
         duration_minutes=30,
         calories_burned=300,
         date=date(2026, 1, 1),
