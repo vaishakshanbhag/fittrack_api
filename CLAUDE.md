@@ -70,6 +70,19 @@ fittrack_api/
   `hashed_password`) through an output schema. Email fields use Pydantic's
   `EmailStr` for format validation (requires the `email-validator` dependency).
 
+### Reference/catalog tables
+- Some tables are **shared, non-user-owned reference data** rather than
+  per-user resources — e.g. `Exercise`, a catalog of exercises referenced by
+  `Workout.exercise_id`. These are never created or modified through the API:
+  they're populated once by a one-off script (see `scripts/import_exercises.py`,
+  which seeds `Exercise` from the free-exercise-db public domain dataset) and
+  exposed only through read-only routes/services (`routes/exercises.py`,
+  `services/exercises.py` — `list_all`/`get`, no `create`/`update`/`delete`).
+- A resource that references catalog data still follows the normal
+  FK/relationship convention (`ForeignKey`, `back_populates` on both sides),
+  it just has no ownership check in its service — the catalog isn't scoped to
+  a user, so there's nothing to check against.
+
 ### Deletion & data retention
 - What happens to a resource's dependent rows on delete is a **service-layer**
   decision, not an ORM cascade — see `services/users.py::delete_user` for the
@@ -87,6 +100,12 @@ fittrack_api/
   Such scripts must be **idempotent** and must **preserve existing data** —
   back up `fittrack.db` and backfill rows rather than dropping them. See
   `scripts/migrate_add_users.py` for the pattern.
+- When backfilling a required FK from prior free-text data (no natural,
+  exact mapping), see `scripts/migrate_workouts_exercise_fk.py`: fuzzy-match
+  each row against the new reference table and fall back to an explicit
+  sentinel row for anything below the confidence cutoff, rather than
+  guessing — this keeps low-confidence backfills easy to find and re-triage
+  later instead of silently baking a wrong guess into the data.
 
 ### Authentication
 - The API uses **JWT bearer auth** (OAuth2 password flow). Auth primitives

@@ -13,6 +13,7 @@ from sqlalchemy.pool import StaticPool
 
 from db import Base, get_db
 from main import app
+from models.db_models import Exercise
 from models.user import UserIn
 from services import auth, users
 
@@ -89,3 +90,35 @@ def auth_headers(test_user):
 def other_auth_headers(other_user):
     token = auth.create_access_token(str(other_user.id))
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def make_exercise(db_session):
+    """Factory fixture: create an Exercise directly against the test DB.
+
+    There's no POST route for Exercise (it's read-only, populated only by
+    scripts/import_exercises.py), so tests that need one bypass the API the
+    same way make_user does.
+    """
+    counter = {"n": 0}
+
+    def _make_exercise(name="Bench Press", category="strength", **overrides):
+        counter["n"] += 1
+        exercise = Exercise(
+            external_id=f"test-exercise-{counter['n']}",
+            name=name,
+            category=category,
+            level="beginner",
+            **overrides,
+        )
+        db_session.add(exercise)
+        db_session.commit()
+        db_session.refresh(exercise)
+        return exercise
+
+    return _make_exercise
+
+
+@pytest.fixture
+def test_exercise(make_exercise):
+    return make_exercise()
