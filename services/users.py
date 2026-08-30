@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from errors import NotFoundError
-from models.db_models import User, Workout
+from models.db_models import User
 from models.user import UserIn, UserOut
 from services import auth
 
