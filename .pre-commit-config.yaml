@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks secret scan
+        entry: ./.tools/gitleaks.exe git --pre-commit --staged --redact -v --no-banner
+        language: system
+        pass_filenames: false

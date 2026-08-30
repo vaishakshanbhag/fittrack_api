@@ -23,6 +23,21 @@ This project uses [uv](https://docs.astral.sh/uv/).
 uv sync
 ```
 
+## Secret scanning
+
+A pre-commit hook runs [gitleaks](https://github.com/gitleaks/gitleaks) on
+every commit to catch accidentally committed secrets. The binary isn't
+checked in — download the `gitleaks_<version>_windows_x64.zip` release for
+your platform from the [gitleaks releases page](https://github.com/gitleaks/gitleaks/releases),
+place `gitleaks.exe` (or `gitleaks` on macOS/Linux) at `.tools/gitleaks.exe`,
+then run:
+
+```powershell
+uv run pre-commit install
+```
+
+Without the binary at that path, the hook will fail to run on commit.
+
 ## Run
 
 ```powershell

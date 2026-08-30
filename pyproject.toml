@@ -17,6 +17,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "httpx",
+    "pre-commit>=4.6.2",
     "pytest",
 ]
 

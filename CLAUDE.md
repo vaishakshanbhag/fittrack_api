@@ -10,10 +10,12 @@ fittrack_api/
 ├── db.py              # SQLAlchemy engine, session factory, get_db dependency, Base
 ├── config.py          # App/auth config (SECRET_KEY, JWT algorithm, token expiry)
 ├── deps.py            # Shared FastAPI dependencies (e.g. get_current_user)
+├── errors.py          # NotFoundError and other domain exception base classes
 ├── routes/            # API route modules — one file per resource/domain
 ├── models/            # Pydantic schemas + SQLAlchemy ORM models
 ├── services/          # Business logic (create as needed, one module per domain)
 ├── scripts/           # One-off maintenance/migration scripts
+├── tests/             # pytest suite (one module per resource/domain)
 ├── pyproject.toml     # Project metadata and dependencies
 ├── uv.lock            # Locked dependency versions (committed)
 └── .venv/             # uv-managed virtual environment (git-ignored)
@@ -69,24 +71,13 @@ fittrack_api/
   `EmailStr` for format validation (requires the `email-validator` dependency).
 
 ### Deletion & data retention
-- Choices about what happens to a resource's dependent rows on delete live in
-  the **service layer**, not in ORM cascade rules. For example,
-  `services/users.py::delete_user(db, user_id, delete_data=False)`:
-  - `delete_data=True` — delete the user and their workouts.
-  - `delete_data=False` (default) — retain the workouts by reassigning them to a
-    freshly created **anonymized placeholder** user (unusable password hash `"!"`,
-    a unique generated email like `deleted-user-{id}@fittrack.local`), then
-    delete the original user.
-  - The placeholder is built as a raw ORM `User(...)`, never via `UserIn`: its
-    `@fittrack.local` address is a reserved special-use domain that Pydantic's
-    `EmailStr` rejects, so it only works by bypassing that validation. This is
-    fine as long as nothing constructs a `UserIn`/`UserOut` for a placeholder —
-    if a future route ever serializes one through `UserOut`, `EmailStr` will
-    reject it there too.
-- Because there is no ORM cascade, a service that deletes an owner must either
-  delete its children explicitly or reassign them (moving `child.user` keeps
-  both sides of the relationship in sync so SQLAlchemy won't try to NULL a
-  `NOT NULL` foreign key).
+- What happens to a resource's dependent rows on delete is a **service-layer**
+  decision, not an ORM cascade — see `services/users.py::delete_user` for the
+  reference pattern (`delete_data=True` cascades; `False` reassigns rows to an
+  anonymized placeholder owner instead of deleting them).
+- A service that deletes an owner must delete or reassign its children
+  explicitly — there's no ORM cascade to do it, and SQLAlchemy will try to
+  NULL a NOT NULL foreign key otherwise.
 
 ### Migrations
 - There is **no migration framework**. On startup `Base.metadata.create_all`
@@ -118,6 +109,10 @@ fittrack_api/
   cannot be revoked, so the expiry is the security window.
 - Anonymized/placeholder users (unusable hash `"!"`) can never authenticate, so
   their workouts are unreachable via the API by design.
+
+### Code quality
+- Always run `uv run ruff check .` before considering any cleanup or review
+  pass complete — do not rely on manual inspection alone.
 
 ## Example route
 
